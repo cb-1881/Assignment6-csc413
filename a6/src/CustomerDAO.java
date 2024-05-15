@@ -30,6 +30,42 @@ public class CustomerDAO implements CustomerDAOInterface {
     }
 
     @Override
+    public List<CustomerDTO> findCustomersByCity(String city) {
+        List<CustomerDTO> customers = new ArrayList<>();
+        String sql = "SELECT c.*, a.streetnum, a.streetname, a.city, a.state, a.zip, a.cusid " +
+                     "FROM bankcustomer c " +
+                     "JOIN customeraddress a ON c.id = a.cusid " +
+                     "WHERE LOWER(a.city) = LOWER(?);";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, city.toLowerCase());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                CustomerAddress address = new CustomerAddress(
+                    rs.getInt("cusid"),
+                    rs.getInt("streetnum"),
+                    rs.getString("streetname"),
+                    rs.getString("city"),
+                    rs.getString("state"),
+                    rs.getInt("zip")
+                );
+                customers.add(new CustomerDTO(
+                    rs.getInt("id"),
+                    rs.getString("first_name"),
+                    rs.getString("last_name"),
+                    rs.getString("email"),
+                    rs.getString("phone"),
+                    rs.getString("sex"),
+                    rs.getDate("birthday"),
+                    address
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
+    @Override
     public Customer getCustomer(String id) {
         String sql = "SELECT * FROM bankcustomer WHERE id = ?";
         Customer customer = null;
@@ -84,58 +120,6 @@ public class CustomerDAO implements CustomerDAOInterface {
     }
 
 
-    @Override
-    public List<CustomerDTO> findCustomersByLastName(String lastName) {
-        List<CustomerDTO> customers = new ArrayList<>();
-        String sql = "SELECT * FROM bankcustomer WHERE last_name = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, lastName);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                customers.add(new CustomerDTO(
-                    rs.getInt("id"),
-                    rs.getString("first_name"),
-                    rs.getString("last_name"),
-                    rs.getString("email"),
-                    rs.getString("phone"),
-                    rs.getString("sex"),
-                    rs.getDate("birthday")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return customers;
-    }
-
-    @Override
-public List<CustomerDTO> findCustomersByCity(String city) {
-    List<CustomerDTO> customers = new ArrayList<>();
-    String sql = "SELECT c.*, a.streetnum, a.streetname, a.city, a.state, a.zip, a.cusid " +
-                 "FROM bankcustomer c " +
-                 "JOIN customeraddress a ON c.id = a.cusid " +
-                 "WHERE LOWER(a.city) = LOWER(?);";
-    try (Connection conn = getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-        stmt.setString(1, city.toLowerCase());  // Ensure case-insensitivity
-        ResultSet rs = stmt.executeQuery();
-        while (rs.next()) {
-            customers.add(new CustomerDTO(
-                rs.getInt("id"),
-                rs.getString("first_name"),
-                rs.getString("last_name"),
-                rs.getString("email"),
-                rs.getString("phone"),
-                rs.getString("sex"),
-                rs.getDate("birthday")
-            ));
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-    return customers;
-}
 
 
 

@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 
 public class SearchPage extends JFrame {
@@ -15,8 +14,8 @@ public class SearchPage extends JFrame {
         createView();
         setTitle("Customer Search by City");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600); // Increased size for better layout
-        setLocationRelativeTo(null); // Center the frame
+        setSize(800, 600);
+        setLocationRelativeTo(null);
     }
 
     private void createView() {
@@ -28,7 +27,7 @@ public class SearchPage extends JFrame {
         cityField.setText("Please enter a city");
         searchButton = new JButton("Search");
         detailsButton = new JButton("Details");
-        detailsButton.setEnabled(false); // Disable until a selection is made
+        detailsButton.setEnabled(false);
 
         inputPanel.add(cityField);
         inputPanel.add(searchButton);
@@ -56,9 +55,9 @@ public class SearchPage extends JFrame {
             try {
                 CustomerDAO customerDao = new CustomerDAO();
                 List<CustomerDTO> customers = customerDao.findCustomersByCity(city);
-                listModel.removeAllElements(); // Clear previous results
+                listModel.removeAllElements();
                 for (CustomerDTO customer : customers) {
-                    listModel.addElement(customer);  // Will use toString() for display
+                    listModel.addElement(customer);
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error searching for customers: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -67,7 +66,7 @@ public class SearchPage extends JFrame {
             JOptionPane.showMessageDialog(this, "Please enter a city name to search.", "Error", JOptionPane.WARNING_MESSAGE);
         }
     }
-    
+
     private void showDetails() {
         CustomerDTO selectedCustomer = resultList.getSelectedValue();
         if (selectedCustomer != null) {
@@ -76,19 +75,15 @@ public class SearchPage extends JFrame {
                                 "Email: " + selectedCustomer.getEmail() + "\n" +
                                 "Phone: " + selectedCustomer.getPhone() + "\n" +
                                 "Sex: " + selectedCustomer.getSex() + "\n" +
-                                "Birthday: " + selectedCustomer.getBirthday() + "\n");
-                               
+                                "Birthday: " + selectedCustomer.getBirthday() + "\n" +
+                                "Address: " + selectedCustomer.getAddress().getStreetName() + ", " +
+                                selectedCustomer.getAddress().getCity() + ", " +
+                                selectedCustomer.getAddress().getState() + " " +
+                                selectedCustomer.getAddress().getZip());
         }
     }
 
-    // Include your existing findCustomersByCity method here with necessary adjustments to fit into this class.
-
     // public static void main(String[] args) {
-    //     SwingUtilities.invokeLater(new Runnable() {
-    //         @Override
-    //         public void run() {
-    //             new SearchPage().setVisible(true);
-    //         }
-    //     });
+    //     SwingUtilities.invokeLater(() -> new SearchPage().setVisible(true));
     // }
 }

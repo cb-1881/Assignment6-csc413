@@ -1,92 +1,62 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
-/**
- *
- * @author kmehta
- */
 public class CustomerAddress {
-    
-    
-    // Define variables to be used in the CustomerAddress processing 
-    int streetnum, zip, id;
-    String streetname, city, state;    
-    
-    /**
-     * 5-Arg Constructor
-     * 
-     * @param num
-     * @param street
-     * @param aCity
-     * @param st
-     * @param zp 
-     */
-    public CustomerAddress(int custID, int num, String street, String aCity, String st, int zp) {
-        int id = custID;
-        streetnum = num;
-        streetname = street;
-        city = aCity;
-        state = st;
-        zip = zp;
-    }
-    
-    //default constructor
-    public CustomerAddress() {}
+    private int id, streetnum, zip;
+    private String streetname, city, state;
 
-    
-    
-    //Setters and getters for the CustomerAddress
-    
+    public CustomerAddress(int custID, int num, String street, String aCity, String st, int zp) {
+        this.id = custID;
+        this.streetnum = num;
+        this.streetname = street;
+        this.city = aCity;
+        this.state = st;
+        this.zip = zp;
+    }
+
+    // Getters and Setters
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public int getStreetNum() {
         return streetnum;
     }
-    
+
+    public void setStreetNum(int num) {
+        this.streetnum = num;
+    }
+
     public String getStreetName() {
         return streetname;
+    }
+
+    public void setStreetName(String stName) {
+        this.streetname = stName;
     }
 
     public String getCity() {
         return city;
     }
 
-    public String getState() {
-        return state;
-    }
-    
-    public int getZip() {
-        return zip;
-    }
-    
-    public void setStreet(String stName) {
-        this.streetname = stName;
-    }
-    
     public void setCity(String ct) {
         this.city = ct;
+    }
+
+    public String getState() {
+        return state;
     }
 
     public void setState(String st) {
         this.state = st;
     }
 
-    public void setZip(int aZip) {
-        this.zip = aZip;
+    public int getZip() {
+        return zip;
     }
 
-    public void setStreetNum(int num) {
-        this.streetnum = num;
+    public void setZip(int zp) {
+        this.zip = zp;
     }
-    
-    public int getID() {
-        return id;
-    }
-    
-    public void setID(int custID) {
-        this.id = custID;
-    }
-    
 }

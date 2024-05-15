@@ -8,12 +8,9 @@ public class CustomerDTO {
     private String phone;
     private String sex;
     private Date birthday;
-    private String address;
+    private CustomerAddress address;  // Reference to CustomerAddress
 
-
-
-    // Constructors, getters, and setters here
-    public CustomerDTO(int id, String firstName, String lastName, String email, String phone, String sex, Date birthday) {
+    public CustomerDTO(int id, String firstName, String lastName, String email, String phone, String sex, Date birthday, CustomerAddress address) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -21,8 +18,10 @@ public class CustomerDTO {
         this.phone = phone;
         this.sex = sex;
         this.birthday = birthday;
+        this.address = address;
     }
 
+    // Getters and Setters
     public int getId() {
         return id;
     }
@@ -79,8 +78,17 @@ public class CustomerDTO {
         this.birthday = birthday;
     }
 
+    public CustomerAddress getAddress() {
+        return address;
+    }
 
+    public void setAddress(CustomerAddress address) {
+        this.address = address;
+    }
 
-    // Getters and setters
-    // ...
+    @Override
+    public String toString() {
+        String cityDisplay = address != null ? address.getCity() : "Unknown City";
+        return firstName + " " + lastName + " - " + cityDisplay;
+    }
 }
