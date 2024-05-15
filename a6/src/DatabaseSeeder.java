@@ -14,6 +14,7 @@ public class DatabaseSeeder {
             insertBankAccounts(url, user, password);
             insertBankCustomers(url, user, password);
             insertCustomerAddresses(url, user, password);
+            insertAccountTransactions(url,user,password);
             System.out.println("Data successfully inserted into all tables.");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -51,6 +52,26 @@ public class DatabaseSeeder {
         };
         executeInsert(url, user, password, sql, bankCustomers);
     }
+
+    private static void insertAccountTransactions(String url, String user, String password) throws SQLException {
+        String sql = "INSERT INTO accountransaction (create_date, tran_type, amount, summary, acct_id) VALUES (?, ?, ?, ?, ?)";
+        Object[][] accountTransactions = {
+            {"2024-02-20 10:01:00", "deposit", 500, "Rent", 1},
+            {"2024-02-20 10:02:00", "withdrawal", 1000, "Car Payment", 2},
+            {"2024-02-20 10:03:00", "deposit", 2000, "House Payment", 3},
+            {"2024-02-20 10:04:00", "withdrawal", 4000, "Shopping", 4},
+            {"2024-02-20 10:05:00", "deposit", 3000, "Vacation", 5},
+            {"2024-02-20 10:06:00", "withdrawal", 7000, "Legal Fee", 6},
+            {"2024-02-20 10:07:00", "deposit", 800, "Medical Insurance", 7},
+            {"2024-02-20 10:08:00", "withdrawal", 200, "Doctor Visit", 8},
+            {"2024-02-20 10:09:00", "deposit", 3000, "Home Goods", 5},
+            {"2024-02-20 10:10:00", "withdrawal", 7000, "Home Improvement", 6},
+            {"2024-02-20 10:11:00", "deposit", 800, "Car Repair", 7},
+            {"2024-02-20 10:12:00", "withdrawal", 200, "Trekking Gear", 8}
+        };
+        executeInsert(url, user, password, sql, accountTransactions);
+    }
+    
 
     private static void insertCustomerAddresses(String url, String user, String password) throws SQLException {
         String sql = "INSERT INTO customeraddress (streetnum, streetname, city, state, zip, cusid) VALUES (?, ?, ?, ?, ?, ?)";
