@@ -5,7 +5,7 @@ import java.util.List;
 
 public class SearchPage extends JFrame {
     private JTextField cityField;
-    private JButton searchButton, detailsButton;
+    private JButton searchButton, detailsButton, updateAddressButton;
     private JList<CustomerDTO> resultList;
     private JTextArea resultsArea;
     private DefaultListModel<CustomerDTO> listModel;
@@ -14,8 +14,8 @@ public class SearchPage extends JFrame {
         createView();
         setTitle("Customer Search by City");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
-        setLocationRelativeTo(null);
+        setSize(800, 600); // Adjusted for better layout
+        setLocationRelativeTo(null); // Center the frame
     }
 
     private void createView() {
@@ -27,16 +27,24 @@ public class SearchPage extends JFrame {
         cityField.setText("Please enter a city");
         searchButton = new JButton("Search");
         detailsButton = new JButton("Details");
-        detailsButton.setEnabled(false);
+        updateAddressButton = new JButton("Update Address");
+
+        detailsButton.setEnabled(false); // Initially disabled
+        updateAddressButton.setEnabled(false); // Initially disabled
 
         inputPanel.add(cityField);
         inputPanel.add(searchButton);
         inputPanel.add(detailsButton);
+        inputPanel.add(updateAddressButton);
 
         listModel = new DefaultListModel<>();
         resultList = new JList<>(listModel);
         resultList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        resultList.addListSelectionListener(e -> detailsButton.setEnabled(!resultList.isSelectionEmpty()));
+        resultList.addListSelectionListener(e -> {
+            boolean notEmpty = !resultList.isSelectionEmpty();
+            detailsButton.setEnabled(notEmpty);
+            updateAddressButton.setEnabled(notEmpty);
+        });
 
         resultsArea = new JTextArea(10, 40);
         resultsArea.setEditable(false);
@@ -47,6 +55,7 @@ public class SearchPage extends JFrame {
 
         searchButton.addActionListener(e -> performSearch());
         detailsButton.addActionListener(e -> showDetails());
+        updateAddressButton.addActionListener(e -> openAddressUpdateWindow());
     }
 
     private void performSearch() {
@@ -55,9 +64,9 @@ public class SearchPage extends JFrame {
             try {
                 CustomerDAO customerDao = new CustomerDAO();
                 List<CustomerDTO> customers = customerDao.findCustomersByCity(city);
-                listModel.removeAllElements();
+                listModel.removeAllElements(); // Clear previous results
                 for (CustomerDTO customer : customers) {
-                    listModel.addElement(customer);
+                    listModel.addElement(customer);  // Will use toString() for display
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error searching for customers: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -80,6 +89,14 @@ public class SearchPage extends JFrame {
                                 selectedCustomer.getAddress().getCity() + ", " +
                                 selectedCustomer.getAddress().getState() + " " +
                                 selectedCustomer.getAddress().getZip());
+        }
+    }
+
+    private void openAddressUpdateWindow() {
+        CustomerDTO selectedCustomer = resultList.getSelectedValue();
+        if (selectedCustomer != null && selectedCustomer.getAddress() != null) {
+            CustomerAddressEditor editor = new CustomerAddressEditor(selectedCustomer.getAddress());
+            editor.setVisible(true);
         }
     }
 

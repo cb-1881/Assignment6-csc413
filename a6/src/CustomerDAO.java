@@ -147,4 +147,27 @@ public class CustomerDAO implements CustomerDAOInterface {
         }
         return customers;
     }
+
+
+    public void saveAddress(CustomerAddress address) {
+        String sql = "UPDATE customeraddress SET streetnum = ?, streetname = ?, city = ?, state = ?, zip = ? WHERE cusid = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, address.getStreetNum());
+            stmt.setString(2, address.getStreetName());
+            stmt.setString(3, address.getCity());
+            stmt.setString(4, address.getState());
+            stmt.setInt(5, address.getZip());
+            stmt.setInt(6, address.getId());  // Assuming cusid is used as the identifier for the address
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Updating address failed, no rows affected.");
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Exception occurred while updating address: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }
