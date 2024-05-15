@@ -1,0 +1,1874 @@
+public class AccountController {
+    private AccountPanel view;
+    private AccountDAO accountDAO;
+
+    public AccountController(AccountPanel view) {
+        this.view = view;
+        this.accountDAO = new AccountDAO();
+        initController();
+    }
+
+    private void initController() {
+        view.getAddButton().addActionListener(e -> addAccount());
+        view.getUpdateButton().addActionListener(e -> updateAccount());
+        view.getDeleteButton().addActionListener(e -> deleteAccount());
+    }
+
+    
+
+    private void addAccount() {
+        Account account = view.getAccountDetails();
+        if (account != null) {
+            accountDAO.addAccount(account);
+            view.showMessage("Account added successfully");
+        }
+    }
+
+    private void updateAccount() {
+        Account account = view.getAccountDetails();
+        if (account != null) {
+            accountDAO.updateAccount(account);
+            view.showMessage("Account updated successfully");
+        }
+    }
+
+    private void deleteAccount() {
+        String acctNum = view.getAccountNumber(); // This method needs to be implemented in AccountPanel
+        accountDAO.deleteAccount(acctNum);
+        view.showMessage("Account deleted successfully");
+    }
+
+    public AccountPanel getView() {
+        return view;
+    }
+
+    public void setView(AccountPanel view) {
+        this.view = view;
+    }
+
+    public AccountDAO getAccountDAO() {
+        return accountDAO;
+    }
+
+    public void setAccountDAO(AccountDAO accountDAO) {
+        this.accountDAO = accountDAO;
+    }
+}
+import java.util.List;
+
+public interface AccountDAOInterface {
+    void addAccount(Account account);
+    Account getAccount(String acctNum);
+    void updateAccount(Account account);
+    void deleteAccount(String acctNum);
+    List<Account> getAllAccounts();
+}
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class AccountDAO implements AccountDAOInterface {
+
+    private Connection getConnection() throws SQLException {
+        String url = "jdbc:mysql://localhost:3306/CS413";
+        String user = "root";
+        String password = "Rootroot123!";
+        return DriverManager.getConnection(url, user, password);
+    }
+
+    @Override
+    public void addAccount(Account account) {
+        String sql = "INSERT INTO bank_account (acct_num, cust_num, balance, create_date, last_update_date, acct_type, od_limit, int_rate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, account.getAcctNum());
+            stmt.setString(2, account.getCustNum());
+            stmt.setDouble(3, account.getBalance());
+            stmt.setDate(4, new java.sql.Date(account.getCreateDate().getTime()));
+            stmt.setDate(5, new java.sql.Date(account.getLastUpdateDate().getTime()));
+            stmt.setString(6, account.getType());
+            stmt.setDouble(7, account.getOdLimit());
+            stmt.setDouble(8, account.getIntRate());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Account getAccount(String acctNum) {
+        String sql = "SELECT * FROM bank_account WHERE acct_num = ?";
+        Account account = null;
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, acctNum);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                account = new Account(sql, sql, 0, null, null, sql, 0, 0);
+                account.setAcctNum(rs.getString("acct_num"));
+                account.setCustNum(rs.getString("cust_num"));
+                account.setBalance(rs.getDouble("balance"));
+                account.setCreateDate(rs.getDate("create_date"));
+                account.setLastUpdateDate(rs.getDate("last_update_date"));
+                account.setType(rs.getString("acct_type"));
+                account.setOdLimit(rs.getDouble("od_limit"));
+                account.setIntRate(rs.getDouble("int_rate"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return account;
+    }
+
+    @Override
+    public void updateAccount(Account account) {
+        String sql = "UPDATE bank_account SET cust_num = ?, balance = ?, create_date = ?, last_update_date = ?, acct_type = ?, od_limit = ?, int_rate = ? WHERE acct_num = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, account.getCustNum());
+            stmt.setDouble(2, account.getBalance());
+            stmt.setDate(3, new java.sql.Date(account.getCreateDate().getTime()));
+            stmt.setDate(4, new java.sql.Date(account.getLastUpdateDate().getTime()));
+            stmt.setString(5, account.getType());
+            stmt.setDouble(6, account.getOdLimit());
+            stmt.setDouble(7, account.getIntRate());
+            stmt.setString(8, account.getAcctNum());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteAccount(String acctNum) {
+        String sql = "DELETE FROM bank_account WHERE acct_num = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, acctNum);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<Account> getAllAccounts() {
+        List<Account> accounts = new ArrayList<>();
+        String sql = "SELECT * FROM bank_account";
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Account account = new Account(sql, sql, 0, null, null, sql, 0, 0);
+                account.setAcctNum(rs.getString("acct_num"));
+                account.setCustNum(rs.getString("cust_num"));
+                account.setBalance(rs.getDouble("balance"));
+                account.setCreateDate(rs.getDate("create_date"));
+                account.setLastUpdateDate(rs.getDate("last_update_date"));
+                account.setType(rs.getString("acct_type"));
+                account.setOdLimit(rs.getDouble("od_limit"));
+                account.setIntRate(rs.getDouble("int_rate"));
+                accounts.add(account);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return accounts;
+    }
+
+    
+}
+
+import java.util.Date;
+
+public class Account {
+    private String acctNum;
+    private String custNum;
+    private double balance;
+    private Date createDate;
+    private Date lastUpdateDate;
+    private String type;
+    private double odLimit;
+    private double intRate;
+
+
+
+    public Account(String acctNum, String custNum, double balance, Date createDate, Date lastUpdateDate, String type,
+            double odLimit, double intRate) {
+        this.acctNum = acctNum;
+        this.custNum = custNum;
+        this.balance = balance;
+        this.createDate = createDate;
+        this.lastUpdateDate = lastUpdateDate;
+        this.type = type;
+        this.odLimit = odLimit;
+        this.intRate = intRate;
+    }
+    public String getAcctNum() {
+        return acctNum;
+    }
+    public void setAcctNum(String acctNum) {
+        this.acctNum = acctNum;
+    }
+    public String getCustNum() {
+        return custNum;
+    }
+    public void setCustNum(String custNum) {
+        this.custNum = custNum;
+    }
+    public double getBalance() {
+        return balance;
+    }
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+    public Date getCreateDate() {
+        return createDate;
+    }
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+    public Date getLastUpdateDate() {
+        return lastUpdateDate;
+    }
+    public void setLastUpdateDate(Date lastUpdateDate) {
+        this.lastUpdateDate = lastUpdateDate;
+    }
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
+    }
+    public double getOdLimit() {
+        return odLimit;
+    }
+    public void setOdLimit(double odLimit) {
+        this.odLimit = odLimit;
+    }
+    public double getIntRate() {
+        return intRate;
+    }
+    public void setIntRate(double intRate) {
+        this.intRate = intRate;
+    }
+
+    // Constructors, getters, and setters
+}
+import javax.swing.*;
+import java.awt.*;
+//import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+//import java.util.Calendar;
+import java.util.Date;
+
+public class AccountPanel extends JPanel {
+    private JTextField acctNumField, custNumField, balanceField, createDateField, lastUpdateDateField, typeField, odLimitField, intRateField;
+    private JButton addButton, updateButton, deleteButton;
+
+    public AccountPanel() {
+        setLayout(new GridLayout(0, 2, 10, 10)); // Use a grid layout
+        initializeComponents();
+    }
+
+    private void initializeComponents() {
+        // Initialize all the components and fields here
+        // For example:
+        acctNumField = new JTextField(20);
+        custNumField = new JTextField(20);
+        balanceField = new JTextField(20);
+        
+        // Set current date for createDateField and lastUpdateDateField
+        createDateField = new JTextField(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        lastUpdateDateField = new JTextField(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        
+        typeField = new JTextField(20);
+        odLimitField = new JTextField(20);
+        intRateField = new JTextField(20);
+        
+        addButton = new JButton("Add");
+        updateButton = new JButton("Update");
+        deleteButton = new JButton("Delete");
+        
+        // Add all the components to the panel
+        add(new JLabel("Account Number:"));
+        add(acctNumField);
+        add(new JLabel("Customer Number:"));
+        add(custNumField);
+        add(new JLabel("Balance:"));
+        add(balanceField);
+        add(new JLabel("Create Date:"));
+        add(createDateField);
+        add(new JLabel("Last Update Date:"));
+        add(lastUpdateDateField);
+        add(new JLabel("Type:"));
+        add(typeField);
+        add(new JLabel("OD Limit:"));
+        add(odLimitField);
+        add(new JLabel("Interest Rate:"));
+        add(intRateField);
+        
+        add(addButton);
+        add(updateButton);
+        add(deleteButton);
+    }
+    public Account getAccountDetails() {
+        try {
+           // SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            //java.util.Date parsedCreateDate = sdf.parse(createDateField.getText());
+            //java.util.Date parsedLastUpdateDate = sdf.parse(lastUpdateDateField.getText());
+
+            java.sql.Date currentDate = new java.sql.Date(System.currentTimeMillis());
+
+            return new Account(
+                    acctNumField.getText(),
+                    custNumField.getText(),
+                    Double.parseDouble(balanceField.getText()),
+                    currentDate, // Set current date as creation date
+                    // For lastUpdateDateField, decide if you want to use the current date
+                    // or handle it in a different manner
+                    currentDate, // This can be set the same way if you wish
+                    typeField.getText(),
+                    Double.parseDouble(odLimitField.getText()),
+                    Double.parseDouble(intRateField.getText())
+            );
+        } catch (Exception e) {
+            showMessage("Error parsing date or number format: " + e.getMessage());
+            System.out.println("Error parsing date or number format: " + e.getMessage());
+            return null; // Or handle more gracefully
+        }
+    }
+
+    public void showMessage(String message) {
+        JOptionPane.showMessageDialog(this, message);
+    }
+
+    // Getters for buttons
+    public JButton getAddButton() {
+        return addButton;
+    }
+
+    public JButton getUpdateButton() {
+        return updateButton;
+    }
+
+    public JButton getDeleteButton() {
+        return deleteButton;
+    }
+
+  
+    public String getAccountNumber() {
+        return acctNumField.getText(); // Retrieves the account number as a String
+    }
+
+
+    public void setAcctNumField(JTextField acctNumField) {
+        this.acctNumField = acctNumField;
+    }
+
+    public JTextField getCustNumField() {
+        return custNumField;
+    }
+
+    public void setCustNumField(JTextField custNumField) {
+        this.custNumField = custNumField;
+    }
+
+    public JTextField getBalanceField() {
+        return balanceField;
+    }
+
+    public void setBalanceField(JTextField balanceField) {
+        this.balanceField = balanceField;
+    }
+
+    public JTextField getCreateDateField() {
+        return createDateField;
+    }
+
+    public void setCreateDateField(JTextField createDateField) {
+        this.createDateField = createDateField;
+    }
+
+    public JTextField getLastUpdateDateField() {
+        return lastUpdateDateField;
+    }
+
+    public void setLastUpdateDateField(JTextField lastUpdateDateField) {
+        this.lastUpdateDateField = lastUpdateDateField;
+    }
+
+    public JTextField getTypeField() {
+        return typeField;
+    }
+
+    public void setTypeField(JTextField typeField) {
+        this.typeField = typeField;
+    }
+
+    public JTextField getOdLimitField() {
+        return odLimitField;
+    }
+
+    public void setOdLimitField(JTextField odLimitField) {
+        this.odLimitField = odLimitField;
+    }
+
+    public JTextField getIntRateField() {
+        return intRateField;
+    }
+
+    public void setIntRateField(JTextField intRateField) {
+        this.intRateField = intRateField;
+    }
+
+    public void setAddButton(JButton addButton) {
+        this.addButton = addButton;
+    }
+
+    public void setUpdateButton(JButton updateButton) {
+        this.updateButton = updateButton;
+    }
+
+    public void setDeleteButton(JButton deleteButton) {
+        this.deleteButton = deleteButton;
+    }
+
+
+}
+public class CustomerController {
+    private CustomerPanel view;
+    private CustomerDAO customerDAO;
+
+    public CustomerController(CustomerPanel view) {
+        this.view = view;
+        this.customerDAO = new CustomerDAO();
+        initController();
+    }
+
+    private void initController() {
+        view.getAddButton().addActionListener(e -> addCustomer());
+        view.getUpdateButton().addActionListener(e -> updateCustomer());
+        view.getDeleteButton().addActionListener(e -> deleteCustomer());
+    }
+
+
+    public CustomerPanel getView() {
+        return view;
+    }
+
+    public void setView(CustomerPanel view) {
+        this.view = view;
+    }
+
+    
+    private void addCustomer() {
+        Customer customer = view.getCustomerDetails();
+        if (customer != null) {
+            customerDAO.addCustomer(customer);
+            view.showMessage("Customer added successfully");
+        }
+    }
+
+    private void updateCustomer() {
+        Customer customer = view.getCustomerDetails();
+        if (customer != null) {
+            customerDAO.updateCustomer(customer);
+            view.showMessage("Customer updated successfully");
+        }
+    }
+
+    private void deleteCustomer() {
+        String email = view.getCustomerEmail();
+        customerDAO.deleteCustomer(email);
+        view.showMessage("Customer deleted successfully");
+    }
+
+
+
+    public CustomerDAO getCustomerDAO() {
+        return customerDAO;
+    }
+
+    public void setCustomerDAO(CustomerDAO customerDAO) {
+        this.customerDAO = customerDAO;
+    }
+
+    
+}
+
+import java.util.List;
+//import java.sql.*;
+
+
+    public interface CustomerDAOInterface {
+    void addCustomer(Customer customer);
+    Customer getCustomer(String id);
+    void updateCustomer(Customer customer);
+    void deleteCustomer(String id);
+    List<Customer> getAllCustomers();
+}
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CustomerDAO implements CustomerDAOInterface {
+
+    private Connection getConnection() throws SQLException {
+        String url = "jdbc:mysql://localhost:3306/CS413";
+        String user = "root";
+        String password = "Rootroot123!";
+        return DriverManager.getConnection(url, user, password);
+    }
+
+    @Override
+    public void addCustomer(Customer customer) {
+        String sql = "INSERT INTO Customer (id, first_name, last_name, email, phone, sex, birthday) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, customer.getId());
+            stmt.setString(2, customer.getFirstName());
+            stmt.setString(3, customer.getLastName());
+            stmt.setString(4, customer.getEmail());
+            stmt.setString(5, customer.getPhone());
+            stmt.setString(6, customer.getSex());
+            stmt.setDate(7, new Date(customer.getBirthday().getTime()));
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Customer getCustomer(String id) {
+        String sql = "SELECT * FROM Customer WHERE id = ?";
+        Customer customer = null;
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                customer = new Customer(sql, sql, sql, sql, sql, sql, null);
+                customer.setId(rs.getString("id"));
+                customer.setFirstName(rs.getString("first_name"));
+                customer.setLastName(rs.getString("last_name"));
+                customer.setEmail(rs.getString("email"));
+                customer.setPhone(rs.getString("phone"));
+                customer.setSex(rs.getString("sex"));
+                customer.setBirthday(rs.getDate("birthday"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customer;
+    }
+
+    @Override
+    public void updateCustomer(Customer customer) {
+        String sql = "UPDATE Customer SET first_name = ?, last_name = ?, email = ?, phone = ?, sex = ?, birthday = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, customer.getFirstName());
+            stmt.setString(2, customer.getLastName());
+            stmt.setString(3, customer.getEmail());
+            stmt.setString(4, customer.getPhone());
+            stmt.setString(5, customer.getSex());
+            stmt.setDate(6, new Date(customer.getBirthday().getTime()));
+            stmt.setString(7, customer.getId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteCustomer(String id) {
+        String sql = "DELETE FROM Customer WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<Customer> getAllCustomers() {
+        List<Customer> customers = new ArrayList<>();
+        String sql = "SELECT * FROM Customer";
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Customer customer = new Customer(sql, sql, sql, sql, sql, sql, null);
+                customer.setId(rs.getString("id"));
+                customer.setFirstName(rs.getString("first_name"));
+                customer.setLastName(rs.getString("last_name"));
+                customer.setEmail(rs.getString("email"));
+                customer.setPhone(rs.getString("phone"));
+                customer.setSex(rs.getString("sex"));
+                customer.setBirthday(rs.getDate("birthday"));
+                customers.add(customer);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customers;
+    }
+}
+
+import java.util.Date;
+
+public class Customer {
+    private String id;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phone;
+    private String sex;
+    private Date birthday;
+    
+    public Customer(String id, String firstName, String lastName, String email, String phone, String sex,
+            Date birthday) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+        this.sex = sex;
+        this.birthday = birthday;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getFirstName() {
+        return firstName;
+    }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    public String getLastName() {
+        return lastName;
+    }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    public String getPhone() {
+        return phone;
+    }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+    public String getSex() {
+        return sex;
+    }
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+    public Date getBirthday() {
+        return birthday;
+    }
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+
+    // Constructors, getters, and setters
+}
+import javax.swing.*;
+import java.awt.*;
+import java.text.SimpleDateFormat;
+
+public class CustomerPanel extends JPanel {
+    private JTextField idField, firstNameField, lastNameField, emailField, phoneField, sexField, birthdayField;
+    private JButton addButton, updateButton, deleteButton;
+
+    public CustomerPanel() {
+        setLayout(new GridLayout(0, 2, 10, 10)); // Use a grid layout
+        initializeComponents();
+    }
+
+    private void initializeComponents() {
+        // ID - Assuming you're using it for something, otherwise you might not need this field
+        add(new JLabel("ID:"));
+        idField = new JTextField(20);
+        add(idField);
+
+        // First Name
+        add(new JLabel("First Name:"));
+        firstNameField = new JTextField(20);
+        add(firstNameField);
+
+        // Last Name
+        add(new JLabel("Last Name:"));
+        lastNameField = new JTextField(20);
+        add(lastNameField);
+
+        // Email
+        add(new JLabel("Email:"));
+        emailField = new JTextField(20);
+        add(emailField);
+
+        // Phone
+        add(new JLabel("Phone:"));
+        phoneField = new JTextField(20);
+        add(phoneField);
+
+        // Sex
+        add(new JLabel("Sex:"));
+        sexField = new JTextField(20);
+        add(sexField);
+
+        // Birthday
+        add(new JLabel("Birthday:"));
+        birthdayField = new JTextField(20);
+        add(birthdayField);
+
+        // Buttons for operations
+        addButton = new JButton("Add");
+        updateButton = new JButton("Update");
+        deleteButton = new JButton("Delete");
+        add(addButton);
+        add(updateButton);
+        add(deleteButton);
+    }
+
+public Customer getCustomerDetails() {
+    try {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        java.util.Date parsedBirthday = sdf.parse(birthdayField.getText());
+        java.sql.Date sqlBirthday = new java.sql.Date(parsedBirthday.getTime());
+
+        return new Customer(
+            idField.getText(), // Assuming an ID field is used for something; you might not need this for creation
+            firstNameField.getText(),
+            lastNameField.getText(),
+            emailField.getText(),
+            phoneField.getText(),
+            sexField.getText(),
+            sqlBirthday // Now correctly using java.sql.Date
+          
+        );
+    } catch (Exception e) {
+        showMessage("Error parsing date or number format: " + e.getMessage());
+        return null; // Or handle more gracefully
+    }
+}
+
+
+    public void showMessage(String message) {
+        JOptionPane.showMessageDialog(this, message);
+    }
+
+    // Getters for the buttons and other input fields if necessary
+    public JButton getAddButton() {
+        return addButton;
+    }
+
+    public JButton getUpdateButton() {
+        return updateButton;
+    }
+
+    public JButton getDeleteButton() {
+        return deleteButton;
+    }
+    
+    public String getCustomerEmail() {
+        return emailField.getText();
+    }
+}
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+public class DatabaseSeeder {
+
+    public static void main(String[] args) {
+        String url = "jdbc:mysql://localhost:3306/CS413";
+        String user = "root";
+        String password = "Rootroot123!";
+
+        try {
+            insertBankAccounts(url, user, password);
+            insertBankCustomers(url, user, password);
+            insertCustomerAddresses(url, user, password);
+            System.out.println("Data successfully inserted into all tables.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void insertBankAccounts(String url, String user, String password) throws SQLException {
+        String sql = "INSERT INTO bankaccount (cust_id, balance, create_date, last_update_date, acct_type, od_limit, int_rate) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        Object[][] bankAccounts = {
+            {1, 2500, "2021-12-12", "2023-12-12", "CH", 2000, 3.2},
+            {2, 3500, "2022-12-12", "2024-01-12", "SV", 1400, 2.2},
+            {3, 4500, "2021-12-12", "2024-12-01", "SV", 1800, 1.2},
+            {4, 5500, "2022-12-12", "2024-07-02", "SV", 1700, 4.0},
+            {5, 6500, "2021-12-12", "2024-08-03", "SV", 1200, 2.0},
+            {6, 7500, "2022-12-12", "2023-09-03", "CH", 1100, 1.7},
+            {7, 8500, "2021-12-12", "2023-10-07", "CH", 800, 1.4},
+            {8, 9500, "2022-12-12", "2023-12-04", "CH", 700, 2.9}
+        };
+        executeInsert(url, user, password, sql, bankAccounts);
+    }
+
+    private static void insertBankCustomers(String url, String user, String password) throws SQLException {
+        String sql = "INSERT INTO bankcustomer (first_name, last_name, email, phone, sex, birthday, addressid) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        Object[][] bankCustomers = {
+            {"John", "Doe", "jdoe@SFSU.edu", "415-555-1212", "Male", "1960-12-07", 2},
+            {"Alexander", "Hamilton", "ahamilton@SFSU.edu", "415-555-1213", "Male", "1898-12-08", 3},
+            {"Franklin", "Roosevelt", "froosevelt@SFSU.edu", "415-555-1214", "Male", "1886-12-07", 4},
+            {"Thomas", "Jefferson", "tjefferson@SFSU.edu", "415-555-1215", "Male", "1855-12-07", 5},
+            {"Johnny", "Appleseed", "jappleseed@SFSU.edu", "415-555-1313", "Male", "1923-03-03", 6},
+            {"Ben", "Franklin", "bfranklin@SFSU.edu", "415-555-1314", "Male", "1912-03-03", 7},
+            {"Herb", "Hoover", "hhoover@SFSU.edu", "415-555-1315", "Male", "1913-03-03", 8},
+            {"Andrew", "Jackson", "ajackson@SFSU.edu", "415-555-1316", "Male", "1916-03-03", 9},
+            {"Sarah", "Connor", "sconnor@SFSU.edu", "415-555-1317", "Female", "1917-03-03", 1},
+            {"Hillary", "Clinton", "hclinton@SFSU.edu", "415-555-1320", "Female", "1942-03-03", 2}
+        };
+        executeInsert(url, user, password, sql, bankCustomers);
+    }
+
+    private static void insertCustomerAddresses(String url, String user, String password) throws SQLException {
+        String sql = "INSERT INTO customeraddress (streetnum, streetname, city, state, zip, cusid) VALUES (?, ?, ?, ?, ?, ?)";
+        Object[][] customerAddresses = {
+            {1212, "Johnson St", "Fremont", "CA", 94536, 1},
+            {1214, "Smith St", "San Mateo", "CA", 94537, 2},
+            {1215, "Tyler St", "South San Francisco", "CA", 94538, 3},
+            {1216, "Dallas St", "San Mateo", "CA", 94539, 4},
+            {1217, "Village St", "Milpitas", "CA", 94531, 5},
+            {1218, "Apple St", "Los Altos", "CA", 94532, 6},
+            {1219, "Banana St", "Fremont", "CA", 94533, 7},
+            {1220, "Kayle St", "Hayward", "CA", 94534, 8},
+            {1221, "Victory St", "San Leandro", "CA", 94540, 9}
+        };
+        executeInsert(url, user, password, sql, customerAddresses);
+    }
+
+    private static void executeInsert(String url, String user, String password, String sql, Object[][] data) throws SQLException {
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            conn.setAutoCommit(false);
+            for (Object[] entry : data) {
+                for (int i = 0; i < entry.length; i++) {
+                    pstmt.setObject(i + 1, entry[i]);
+                }
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+            conn.commit();
+        }
+    }
+}
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class databaseSetup {
+
+    public static void main(String[] args) {
+        // Database connection details
+        String url = "jdbc:mysql://localhost:3306/CS413";
+        String user = "root";
+        String password = "Rootroot123!";
+
+
+        /*            stmt.executeUpdate("DROP DATABASE IF EXISTS CS413");
+            stmt.executeUpdate("CREATE DATABASE CS413");
+            stmt.executeUpdate("USE CS413"); */
+        // SQL statements for table creation
+        String[] sqlStatements = {
+            "DROP DATABASE IF EXISTS CS413",
+            "CREATE DATABASE CS413",
+            "USE CS413",
+            "CREATE TABLE bank_account (acct_num INT PRIMARY KEY AUTO_INCREMENT, cust_num INT, balance FLOAT, create_date VARCHAR(40), last_update_date VARCHAR(40), acct_type VARCHAR(5), od_limit FLOAT, int_rate FLOAT)",
+            "CREATE TABLE Customer (id INT PRIMARY KEY AUTO_INCREMENT, first_name VARCHAR(45), last_name VARCHAR(45), email VARCHAR(40), phone VARCHAR(20), sex VARCHAR(10), birthday VARCHAR(20))",
+            "CREATE TABLE Employees (id INT PRIMARY KEY AUTO_INCREMENT, first_name VARCHAR(45), last_name VARCHAR(45), email VARCHAR(40), phone VARCHAR(20), sex VARCHAR(10), birthday VARCHAR(20), salary DOUBLE, department VARCHAR(40))",
+            "CREATE TABLE transaction (id INT PRIMARY KEY AUTO_INCREMENT, dateandtime VARCHAR(20), tran_type VARCHAR(15), amount FLOAT, description VARCHAR(40), ref_id INT, acct_id INT)",
+            "CREATE TABLE admin (userid VARCHAR(45),pwd VARCHAR(45))"
+        };
+
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            Statement stmt = conn.createStatement();
+            
+            // Execute each SQL statement to create tables
+            for (String sql : sqlStatements) {
+                stmt.execute(sql);
+                System.out.println("Executed: " + sql);
+            }
+            System.out.println("All tables created successfully.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+
+public class Driver {
+    public static void main(String[] args) {
+        EmployeeWindow();
+        customerWindow();
+        accountWindow();
+        transactionWindow();
+    }
+
+    public static void EmployeeWindow(){
+
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Employee Management");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(400, 300);
+
+            // Create the view component
+            EmployeePanel employeePanel = new EmployeePanel();
+
+            // Create the controller, passing the view to it
+            EmployeeController employeeController = new EmployeeController(employeePanel);
+
+            // Add the view component to the JFrame, not the controller
+            frame.add(employeeController.getView());
+
+            frame.pack(); // Adjust the window size to fit its content
+            frame.setVisible(true);
+        });
+    }
+    public static void customerWindow() {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Customer Management");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(400, 300);
+
+            // Create the CustomerPanel view component
+            CustomerPanel customerPanel = new CustomerPanel();
+
+            // Create the CustomerController, passing the view to it
+            CustomerController customerController = new CustomerController(customerPanel);
+
+            // Add the view component to the JFrame
+            frame.add(customerController.getView());
+
+            frame.pack(); // Adjust the window size to fit its content
+            frame.setVisible(true);
+        });
+    }
+
+    public static void accountWindow() {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("account Management");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(400, 300);
+
+            // Create the CustomerPanel view component
+            AccountPanel accountPanel = new AccountPanel();
+
+            // Create the CustomerController, passing the view to it
+            AccountController accountController = new AccountController(accountPanel);
+
+            // Add the view component to the JFrame
+            frame.add(accountController.getView());
+
+            frame.pack(); // Adjust the window size to fit its content
+            frame.setVisible(true);
+        });
+    }
+
+    public static void transactionWindow() {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Transaction Management");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(400, 300);
+
+            // Create the CustomerPanel view component
+            TransactionPanel transactionPanel = new TransactionPanel();
+
+            // Create the CustomerController, passing the view to it
+            TransactionController transactionController = new TransactionController(transactionPanel);
+
+            // Add the view component to the JFrame
+            frame.add(transactionController.getView());
+
+            frame.pack(); // Adjust the window size to fit its content
+            frame.setVisible(true);
+        });
+    }
+
+}
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class dropTables {
+
+    public static void main(String[] args) {
+        String url = "jdbc:mysql://localhost:3306/CS413";
+        String user = "root";
+        String password = "Rootroot123!";
+
+        // SQL statements to drop tables
+        String[] sqlStatements = {
+            "DROP TABLE IF EXISTS bank_account",
+            "DROP TABLE IF EXISTS Customer",
+            "DROP TABLE IF EXISTS Employees",
+            "DROP TABLE IF EXISTS transaction", 
+            "DROP TABLE IF EXISTS admin"
+           
+        };
+
+        try (Connection conn = DriverManager.getConnection(url, user, password)) {
+            Statement stmt = conn.createStatement();
+            
+            // Execute each SQL statement to drop tables
+            for (String sql : sqlStatements) {
+                stmt.execute(sql);
+                System.out.println("Dropped table with command: " + sql);
+            }
+            System.out.println("All specified tables dropped successfully.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+public class EmployeeController {
+    private EmployeePanel view;
+    private EmployeeDAO employeeDAO;
+
+    public EmployeeController(EmployeePanel view) {
+        this.view = view;
+        this.employeeDAO = new EmployeeDAO();
+        initController();
+    }
+
+    private void initController() {
+        view.getAddButton().addActionListener(e -> addEmployee());
+        view.getUpdateButton().addActionListener(e -> updateEmployee());
+        view.getDeleteButton().addActionListener(e -> deleteEmployee());
+    }
+
+    
+    
+        // Method to get the view component for adding to a JFrame
+        public EmployeePanel getView() {
+            return view;
+        }
+
+    private void addEmployee() {
+        Employee employee = view.getEmployeeDetails();
+        employeeDAO.addEmployee(employee);
+        view.showMessage("Employee added successfully");
+    }
+
+    private void updateEmployee() {
+        Employee employee = view.getEmployeeDetails();
+        employeeDAO.updateEmployee(employee);
+        view.showMessage("Employee updated successfully");
+    }
+
+    private void deleteEmployee() {
+        String email = view.getEmployeeEmail();
+        employeeDAO.deleteEmployee(email);
+        view.showMessage("Employee deleted successfully");
+    }
+}
+import java.util.List;
+
+public interface EmployeeDAOInterface {
+    void addEmployee(Employee employee);
+    Employee getEmployee(String email); // Assuming email is unique identifier
+    void updateEmployee(Employee employee);
+    void deleteEmployee(String email);
+    List<Employee> getAllEmployees();
+}
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class EmployeeDAO implements EmployeeDAOInterface {
+
+    private Connection getConnection() throws SQLException {
+        String url = "jdbc:mysql://localhost:3306/CS413";
+        String user = "root";
+        String password = "Rootroot123!";
+        return DriverManager.getConnection(url, user, password);
+    }
+
+    @Override
+    public void addEmployee(Employee employee) {
+        String sql = "INSERT INTO Employees (first_name, last_name, email, phone, sex, birthday, salary, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, employee.getFirstName());
+            stmt.setString(2, employee.getLastName());
+            stmt.setString(3, employee.getEmail());
+            stmt.setString(4, employee.getPhone());
+            stmt.setString(5, employee.getSex());
+            stmt.setDate(6, new java.sql.Date(employee.getBirthday().getTime()));
+            stmt.setDouble(7, employee.getSalary());
+            stmt.setString(8, employee.getDepartment());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Employee getEmployee(String email) {
+        String sql = "SELECT * FROM Employees WHERE email = ?";
+        Employee employee = null;
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                employee = new Employee(sql, sql, sql, sql, sql, null, 0, sql);
+                employee.setFirstName(rs.getString("first_name"));
+                employee.setLastName(rs.getString("last_name"));
+                employee.setEmail(rs.getString("email"));
+                employee.setPhone(rs.getString("phone"));
+                employee.setSex(rs.getString("sex"));
+                employee.setBirthday(rs.getDate("birthday"));
+                employee.setSalary(rs.getDouble("salary"));
+                employee.setDepartment(rs.getString("department"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return employee;
+    }
+
+    @Override
+    public void updateEmployee(Employee employee) {
+        String sql = "UPDATE Employees SET first_name = ?, last_name = ?, phone = ?, sex = ?, birthday = ?, salary = ?, department = ? WHERE email = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, employee.getFirstName());
+            stmt.setString(2, employee.getLastName());
+            stmt.setString(3, employee.getPhone());
+            stmt.setString(4, employee.getSex());
+            stmt.setDate(5, new java.sql.Date(employee.getBirthday().getTime()));
+            stmt.setDouble(6, employee.getSalary());
+            stmt.setString(7, employee.getDepartment());
+            stmt.setString(8, employee.getEmail());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteEmployee(String email) {
+        String sql = "DELETE FROM Employees WHERE email = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public List<Employee> getAllEmployees() {
+        List<Employee> employees = new ArrayList<>();
+        String sql = "SELECT * FROM Employees";
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Employee employee = new Employee(sql, sql, sql, sql, sql, null, 0, sql);
+                employee.setFirstName(rs.getString("first_name"));
+                employee.setLastName(rs.getString("last_name"));
+                employee.setEmail(rs.getString("email"));
+                employee.setPhone(rs.getString("phone"));
+                employee.setSex(rs.getString("sex"));
+                employee.setBirthday(rs.getDate("birthday"));
+                employee.setSalary(rs.getDouble("salary"));
+                employee.setDepartment(rs.getString("department"));
+                employees.add(employee);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return employees;
+    }
+}
+
+import java.util.Date;
+
+public class Employee {
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String phone;
+    private String sex;
+    private Date birthday;
+    private double salary;
+    private String department;
+
+
+       // Constructor with parameters as used in EmployeePanel
+       public Employee(String firstName, String lastName, String email, String phone, String sex, Date birthday, double salary, String department) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+        this.sex = sex;
+        this.birthday = birthday;
+        this.salary = salary;
+        this.department = department;
+    }
+
+
+    public String getFirstName() {
+        return firstName;
+    }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    public String getLastName() {
+        return lastName;
+    }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    public String getPhone() {
+        return phone;
+    }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+    public String getSex() {
+        return sex;
+    }
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+    public Date getBirthday() {
+        return birthday;
+    }
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
+    public double getSalary() {
+        return salary;
+    }
+    public void setSalary(double salary) {
+        this.salary = salary;
+    }
+    public String getDepartment() {
+        return department;
+    }
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    // Constructors, getters, and setters
+}
+import javax.swing.*;
+import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class EmployeePanel extends JPanel {
+    private JTextField firstNameField, lastNameField, emailField, phoneField, sexField, birthdayField, salaryField, departmentField;
+    private JButton addButton, updateButton, deleteButton;
+
+    public EmployeePanel() {
+        setLayout(new GridLayout(0, 2, 10, 10)); // A grid layout with 2 columns
+
+        // Initialize components and add them to the panel
+        initializeComponents();
+        
+        // Buttons (Assuming you need these based on your controller)
+        addButton = new JButton("Add");
+        updateButton = new JButton("Update");
+        deleteButton = new JButton("Delete");
+        add(addButton);
+        add(updateButton);
+        add(deleteButton); // Placeholder, assuming you have or will add action listeners elsewhere
+    }
+    private void initializeComponents() {
+        // First Name
+        add(new JLabel("First Name:"));
+        firstNameField = new JTextField(20);
+        add(firstNameField);
+        
+        // Last Name
+        add(new JLabel("Last Name:"));
+        lastNameField = new JTextField(20);
+        add(lastNameField);
+        
+        // Email
+        add(new JLabel("Email:"));
+        emailField = new JTextField(20);
+        add(emailField);
+        
+        // Phone
+        add(new JLabel("Phone:"));
+        phoneField = new JTextField(20);
+        add(phoneField);
+        
+        // Sex
+        add(new JLabel("Sex:"));
+        sexField = new JTextField(20);
+        add(sexField);
+        
+        // Birthday
+        add(new JLabel("Birthday:"));
+        birthdayField = new JTextField(20);
+        add(birthdayField);
+        
+        // Salary
+        add(new JLabel("Salary:"));
+        salaryField = new JTextField(20);
+        add(salaryField);
+        
+        // Department
+        add(new JLabel("Department:"));
+        departmentField = new JTextField(20);
+        add(departmentField);
+    }
+
+        public Employee getEmployeeDetails() {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date birthday = sdf.parse(birthdayField.getText());
+
+            return new Employee(
+                    firstNameField.getText(),
+                    lastNameField.getText(),
+                    emailField.getText(),
+                    phoneField.getText(),
+                    sexField.getText(),
+                    new java.sql.Date(birthday.getTime()),
+                    Double.parseDouble(salaryField.getText()),
+                    departmentField.getText()
+            );
+        } catch (Exception e) {
+            showMessage("Error parsing employee details: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public String getEmployeeEmail() {
+        return emailField.getText();
+    }
+
+    public void showMessage(String message) {
+        JOptionPane.showMessageDialog(this, message);
+    }
+
+    // Getter methods for the buttons if not already implemented
+    public JButton getAddButton() {
+        return addButton;
+    }
+
+    public JButton getUpdateButton() {
+        return updateButton;
+    }
+
+    public JButton getDeleteButton() {
+        return deleteButton;
+    }
+}
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+public class ExampleTest {
+
+    public static void main(String[] args) {
+        // Create an instance of EmployeeDAO
+        EmployeeDAO employeeDAO = new EmployeeDAO();
+
+        // Create an instance of Employee
+        Employee employee = new Employee(null, null, null, null, null, null, 0, null);
+        employee.setFirstName("John");
+        employee.setLastName("Doe");
+        employee.setEmail("john.doe@example.com");
+        employee.setPhone("1234567890");
+        employee.setSex("Male");
+
+        try {
+            // Set the birthday using SimpleDateFormat
+            String strDate = "1990-01-01"; // Example date
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            employee.setBirthday(new java.sql.Date(sdf.parse(strDate).getTime()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        employee.setSalary(50000.00);
+        employee.setDepartment("Engineering");
+
+        // Use EmployeeDAO to add the Employee to the database
+        employeeDAO.addEmployee(employee);
+
+        System.out.println("Employee added successfully!");
+
+             // Retrieve and print all employees
+        List<Employee> employees = employeeDAO.getAllEmployees();
+        System.out.println("Listing all employees:");
+        for (Employee emp : employees) {
+            System.out.println(", Name: " + emp.getFirstName() + " " + emp.getLastName() +
+                    ", Email: " + emp.getEmail() + ", Phone: " + emp.getPhone() +
+                    ", Sex: " + emp.getSex() + ", Birthday: " + emp.getBirthday() +
+                    ", Salary: " + emp.getSalary() + ", Department: " + emp.getDepartment());
+        }
+        //employeeDAO.deleteEmployee("john.doe@example.com");  
+    }
+}
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class makeDatabase {
+    public static void main(String[] args) {
+        String url = "jdbc:mysql://localhost:3306/CS413";
+        String user = "root"; 
+        String password = "Rootroot123!"; 
+
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             Statement stmt = conn.createStatement()) {
+
+            // Dropping and Creating Database
+            stmt.executeUpdate("DROP DATABASE IF EXISTS CS413");
+            stmt.executeUpdate("CREATE DATABASE CS413");
+            stmt.executeUpdate("USE CS413");
+
+            // Creating tables and inserting data
+            stmt.executeUpdate("CREATE TABLE admin (userid VARCHAR(40), pwd VARCHAR(45))");
+            stmt.executeUpdate("INSERT INTO admin(userid, pwd) VALUES ('kmehta', 'password')");
+
+            stmt.executeUpdate("CREATE TABLE bankcustomer (id INT PRIMARY KEY AUTO_INCREMENT, first_name VARCHAR(45), last_name VARCHAR(45), email VARCHAR(40), phone VARCHAR(20), sex VARCHAR(10), birthday VARCHAR(20), addressid INT)");
+           // stmt.executeUpdate("LOAD DATA INFILE 'bankcustomer.csv' INTO TABLE bankcustomer FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 LINES (first_name, last_name, email, phone, sex, birthday, addressid)");
+
+            stmt.executeUpdate("CREATE TABLE customeraddress (streetnum INT, streetname VARCHAR(45), city VARCHAR(40), state VARCHAR(5), zip INT, cusid INT)");
+          //  stmt.executeUpdate("LOAD DATA INFILE 'customeraddress.csv' INTO TABLE customeraddress FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 LINES (streetnum, streetname, city, state, zip, cusid)");
+
+            stmt.executeUpdate("CREATE TABLE bankaccount (acct_num INT PRIMARY KEY AUTO_INCREMENT, cust_id INT, balance FLOAT, create_date VARCHAR(40), last_update_date VARCHAR(40), acct_type VARCHAR(5), od_limit FLOAT, int_rate FLOAT)");
+            //stmt.executeUpdate("LOAD DATA INFILE 'bankaccount.csv' INTO TABLE bankaccount FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 LINES (cust_id, balance, create_date, last_update_date, acct_type, od_limit, int_rate)");
+
+            stmt.executeUpdate("CREATE TABLE accountransaction (create_date DATETIME, tran_type VARCHAR(45), amount FLOAT, summary VARCHAR(40), acct_id INT)");
+            //stmt.executeUpdate("LOAD DATA INFILE 'accountransaction.csv' INTO TABLE accountransaction FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n' IGNORE 1 LINES (create_date, tran_type, amount, summary, acct_id)");
+
+            // Fetch and display bankcustomer data to confirm
+            ResultSet rs = stmt.executeQuery("SELECT * FROM bankcustomer");
+            while (rs.next()) {
+                System.out.println("ID: " + rs.getInt("id") + ", Name: " + rs.getString("first_name") + " " + rs.getString("last_name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+public class TransactionController {
+    private TransactionPanel view;
+    private TransactionDAO transactionDAO;
+
+    public TransactionController(TransactionPanel view) {
+        this.view = view;
+        this.transactionDAO = new TransactionDAO();
+        initController();
+    }
+
+    private void initController() {
+        view.getAddButton().addActionListener(e -> addTransaction());
+        view.getUpdateButton().addActionListener(e -> updateTransaction());
+        view.getDeleteButton().addActionListener(e -> deleteTransaction());
+    }
+
+    
+
+    private void addTransaction() {
+        Transaction transaction = view.getTransactionDetails();
+        transactionDAO.addTransaction(transaction);
+        view.showMessage("Transaction added successfully");
+    }
+
+    private void updateTransaction() {
+        Transaction transaction = view.getTransactionDetails();
+        transactionDAO.updateTransaction(transaction);
+        view.showMessage("Transaction updated successfully");
+    }
+
+    private void deleteTransaction() {
+        String refID = view.getTransactionRefID();
+        transactionDAO.deleteTransaction(refID);
+        view.showMessage("Transaction deleted successfully");
+    }
+
+    public TransactionPanel getView() {
+        return view;
+    }
+
+    public void setView(TransactionPanel view) {
+        this.view = view;
+    }
+
+    public TransactionDAO getTransactionDAO() {
+        return transactionDAO;
+    }
+
+    public void setTransactionDAO(TransactionDAO transactionDAO) {
+        this.transactionDAO = transactionDAO;
+    }
+}
+import java.util.List;
+
+public interface TransactionDAOInterface {
+    void addTransaction(Transaction transaction);
+    Transaction getTransaction(String id);
+    void updateTransaction(Transaction transaction);
+    void deleteTransaction(String id);
+    List<Transaction> getAllTransactions();
+}
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+public class TransactionDAO implements TransactionDAOInterface {
+
+    private Connection getConnection() throws SQLException {
+        String url = "jdbc:mysql://localhost:3306/CS413";
+        String user = "root";
+        String password = "Rootroot123!";
+        return DriverManager.getConnection(url, user, password);
+    }
+
+    @Override
+    public void addTransaction(Transaction transaction) {
+        String sql = "INSERT INTO transaction (dateandtime, tran_type, amount, description, ref_id, acct_id) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDate(1, new java.sql.Date(transaction.getDateAndTime().getTime()));
+            stmt.setString(2, transaction.getTranType());
+            stmt.setDouble(3, transaction.getAmount());
+            stmt.setString(4, transaction.getDescription());
+            stmt.setString(5, transaction.getRefID());
+            stmt.setString(6, transaction.getAcctId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    @Override
+public Transaction getTransaction(String id) {
+    String sql = "SELECT * FROM transaction WHERE id = ?";
+    Transaction transaction = null;
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, id);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            transaction = new Transaction(null, sql, 0, sql, sql, sql);
+            transaction.setDateAndTime(rs.getDate("dateandtime"));
+            transaction.setTranType(rs.getString("tran_type"));
+            transaction.setAmount(rs.getDouble("amount"));
+            transaction.setDescription(rs.getString("description"));
+            transaction.setRefID(rs.getString("ref_id"));
+            transaction.setAcctId(rs.getString("acct_id"));
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return transaction;
+}
+
+@Override
+public void updateTransaction(Transaction transaction) {
+    String sql = "UPDATE transaction SET dateandtime = ?, tran_type = ?, amount = ?, description = ?, ref_id = ?, acct_id = ? WHERE id = ?";
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setDate(1, new java.sql.Date(transaction.getDateAndTime().getTime()));
+        stmt.setString(2, transaction.getTranType());
+        stmt.setDouble(3, transaction.getAmount());
+        stmt.setString(4, transaction.getDescription());
+        stmt.setString(5, transaction.getRefID());
+        stmt.setString(6, transaction.getAcctId());
+        stmt.setString(7, transaction.getRefID()); // Assuming refID is used as a unique identifier
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+@Override
+public void deleteTransaction(String id) {
+    String sql = "DELETE FROM transaction WHERE id = ?";
+    try (Connection conn = getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, id);
+        stmt.executeUpdate();
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+@Override
+public List<Transaction> getAllTransactions() {
+    List<Transaction> transactions = new ArrayList<>();
+    String sql = "SELECT * FROM transaction";
+    try (Connection conn = getConnection();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+        while (rs.next()) {
+            Transaction transaction = new Transaction(null, sql, 0, sql, sql, sql);
+            transaction.setDateAndTime(rs.getDate("dateandtime"));
+            transaction.setTranType(rs.getString("tran_type"));
+            transaction.setAmount(rs.getDouble("amount"));
+            transaction.setDescription(rs.getString("description"));
+            transaction.setRefID(rs.getString("ref_id"));
+            transaction.setAcctId(rs.getString("acct_id"));
+            transactions.add(transaction);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return transactions;
+}
+
+    // Implement other methods (getTransaction, updateTransaction, deleteTransaction, getAllTransactions) similarly
+}
+
+import java.util.Date;
+
+public class Transaction {
+    private Date dateAndTime;
+    private String tranType;
+    private double amount;
+    private String description;
+    private String refID;
+    private String acctId;
+
+
+    
+    public Transaction(Date dateAndTime, String tranType, double amount, String description, String refID,
+            String acctId) {
+        this.dateAndTime = dateAndTime;
+        this.tranType = tranType;
+        this.amount = amount;
+        this.description = description;
+        this.refID = refID;
+        this.acctId = acctId;
+    }
+    public Date getDateAndTime() {
+        return dateAndTime;
+    }
+    public void setDateAndTime(Date dateAndTime) {
+        this.dateAndTime = dateAndTime;
+    }
+    public String getTranType() {
+        return tranType;
+    }
+    public void setTranType(String tranType) {
+        this.tranType = tranType;
+    }
+    public double getAmount() {
+        return amount;
+    }
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+    public String getRefID() {
+        return refID;
+    }
+    public void setRefID(String refID) {
+        this.refID = refID;
+    }
+    public String getAcctId() {
+        return acctId;
+    }
+    public void setAcctId(String acctId) {
+        this.acctId = acctId;
+    }
+
+    // Constructors, getters, and setters
+}
+
+import javax.swing.*;
+import java.awt.*;
+import java.text.SimpleDateFormat;
+//import java.util.Date;
+import java.util.Date;
+
+
+
+public class TransactionPanel extends JPanel {
+
+    private JTextField dateAndTimeField, tranTypeField, amountField, descriptionField, refIDField, acctIdField;
+    private JButton addButton, updateButton, deleteButton;
+
+    public TransactionPanel() {
+        setLayout(new GridLayout(0, 2, 10, 10));
+        initializeComponents();
+    }
+
+    private void initializeComponents() {
+        // Define and add components as shown in EmployeePanel
+        // Example:
+        add(new JLabel("Date and Time:"));
+        dateAndTimeField = new JTextField(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        add(dateAndTimeField);
+    
+        add(new JLabel("Transaction Type:"));
+        tranTypeField = new JTextField(20); // Make sure this line is included
+        add(tranTypeField);
+    
+        add(new JLabel("Amount:"));
+        amountField = new JTextField(20);
+        add(amountField);
+    
+        add(new JLabel("Description:"));
+        descriptionField = new JTextField(20);
+        add(descriptionField);
+    
+        add(new JLabel("Reference ID:"));
+        refIDField = new JTextField(20);
+        add(refIDField);
+    
+        add(new JLabel("Account ID:"));
+        acctIdField = new JTextField(20);
+        add(acctIdField);
+    
+        // Initialize buttons
+        addButton = new JButton("Add");
+        updateButton = new JButton("Update");
+        deleteButton = new JButton("Delete");
+        add(addButton);
+        add(updateButton);
+        add(deleteButton);
+    }
+    
+
+    public Transaction getTransactionDetails() {
+        try {
+            // Assuming dateAndTimeField's text is in the format "yyyy-MM-dd"
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            java.util.Date parsedDate = sdf.parse(dateAndTimeField.getText());
+            java.sql.Date sqlDate = new java.sql.Date(parsedDate.getTime());
+    
+            return new Transaction(
+                sqlDate, // Now correctly using java.sql.Date
+                tranTypeField.getText(),
+                Double.parseDouble(amountField.getText()),
+                descriptionField.getText(),
+                refIDField.getText(),
+                acctIdField.getText()
+            );
+        } catch (Exception e) {
+            showMessage("Error parsing date: " + e.getMessage());
+            System.out.println("Error parsing date: " + e.getMessage());
+            return null; // Or handle more gracefully
+        }
+    }
+
+    public void showMessage(String message) {
+        JOptionPane.showMessageDialog(this, message);
+    }
+
+    public JTextField getDateAndTimeField() {
+        return dateAndTimeField;
+    }
+
+    public void setDateAndTimeField(JTextField dateAndTimeField) {
+        this.dateAndTimeField = dateAndTimeField;
+    }
+
+    public JTextField getTranTypeField() {
+        return tranTypeField;
+    }
+
+    public void setTranTypeField(JTextField tranTypeField) {
+        this.tranTypeField = tranTypeField;
+    }
+
+    public JTextField getAmountField() {
+        return amountField;
+    }
+
+    public void setAmountField(JTextField amountField) {
+        this.amountField = amountField;
+    }
+
+    public JTextField getDescriptionField() {
+        return descriptionField;
+    }
+
+    public void setDescriptionField(JTextField descriptionField) {
+        this.descriptionField = descriptionField;
+    }
+
+    public JTextField getRefIDField() {
+        return refIDField;
+    }
+
+    public void setRefIDField(JTextField refIDField) {
+        this.refIDField = refIDField;
+    }
+
+    public JTextField getAcctIdField() {
+        return acctIdField;
+    }
+
+    public void setAcctIdField(JTextField acctIdField) {
+        this.acctIdField = acctIdField;
+    }
+
+    public JButton getAddButton() {
+        return addButton;
+    }
+    
+    public JButton getUpdateButton() {
+        return updateButton;
+    }
+    
+    public JButton getDeleteButton() {
+        return deleteButton;
+    }
+    
+    public String getTransactionRefID() {
+        return refIDField.getText();
+    }
+    
+
+
+    // Add getters for the buttons
+}
