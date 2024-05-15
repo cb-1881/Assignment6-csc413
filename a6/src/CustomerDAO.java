@@ -170,4 +170,31 @@ public class CustomerDAO implements CustomerDAOInterface {
         }
     }
 
+    public List<BankAccount> findBankAccountsByCustomerId(int customerId) {
+        List<BankAccount> accounts = new ArrayList<>();
+        String sql = "SELECT * FROM bankaccount WHERE cust_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, customerId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                BankAccount account = new BankAccount(
+                    rs.getInt("acct_num"),
+                    rs.getInt("cust_id"),
+                    rs.getDouble("balance"),
+                    rs.getString("create_date"),
+                    rs.getString("last_update_date"),
+                    rs.getString("acct_type"),
+                    rs.getFloat("od_limit"),
+                    rs.getFloat("int_rate")
+                );
+                accounts.add(account);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return accounts;
+    }
+    
+
 }

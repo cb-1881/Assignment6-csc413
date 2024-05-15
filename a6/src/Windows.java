@@ -13,7 +13,7 @@ public class Windows {
 
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Employee Management");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setSize(400, 300);
 
             // Create the view component
@@ -32,7 +32,7 @@ public class Windows {
     public static void customerWindow() {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Customer Management");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setSize(400, 300);
 
             // Create the CustomerPanel view component
@@ -52,7 +52,7 @@ public class Windows {
     public static void accountWindow() {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("account Management");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setSize(400, 300);
 
             // Create the CustomerPanel view component
@@ -72,7 +72,7 @@ public class Windows {
     public static void transactionWindow() {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Transaction Management");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
             frame.setSize(400, 300);
 
             // Create the CustomerPanel view component

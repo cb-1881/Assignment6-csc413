@@ -5,7 +5,7 @@ import java.util.List;
 
 public class SearchPage extends JFrame {
     private JTextField cityField;
-    private JButton searchButton, detailsButton, updateAddressButton;
+    private JButton searchButton, detailsButton, updateAddressButton, showAccountsButton;
     private JList<CustomerDTO> resultList;
     private JTextArea resultsArea;
     private DefaultListModel<CustomerDTO> listModel;
@@ -13,7 +13,7 @@ public class SearchPage extends JFrame {
     public SearchPage() {
         createView();
         setTitle("Customer Search by City");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(800, 600); // Adjusted for better layout
         setLocationRelativeTo(null); // Center the frame
     }
@@ -28,14 +28,17 @@ public class SearchPage extends JFrame {
         searchButton = new JButton("Search");
         detailsButton = new JButton("Details");
         updateAddressButton = new JButton("Update Address");
+        showAccountsButton = new JButton("Show Accounts");
 
         detailsButton.setEnabled(false); // Initially disabled
         updateAddressButton.setEnabled(false); // Initially disabled
+        showAccountsButton.setEnabled(false); // Initially disabled
 
         inputPanel.add(cityField);
         inputPanel.add(searchButton);
         inputPanel.add(detailsButton);
         inputPanel.add(updateAddressButton);
+        inputPanel.add(showAccountsButton);
 
         listModel = new DefaultListModel<>();
         resultList = new JList<>(listModel);
@@ -44,6 +47,7 @@ public class SearchPage extends JFrame {
             boolean notEmpty = !resultList.isSelectionEmpty();
             detailsButton.setEnabled(notEmpty);
             updateAddressButton.setEnabled(notEmpty);
+            showAccountsButton.setEnabled(notEmpty);
         });
 
         resultsArea = new JTextArea(10, 40);
@@ -56,6 +60,7 @@ public class SearchPage extends JFrame {
         searchButton.addActionListener(e -> performSearch());
         detailsButton.addActionListener(e -> showDetails());
         updateAddressButton.addActionListener(e -> openAddressUpdateWindow());
+        showAccountsButton.addActionListener(e -> openAccountListWindow());
     }
 
     private void performSearch() {
@@ -100,7 +105,11 @@ public class SearchPage extends JFrame {
         }
     }
 
-    // public static void main(String[] args) {
-    //     SwingUtilities.invokeLater(() -> new SearchPage().setVisible(true));
-    // }
+    private void openAccountListWindow() {
+        CustomerDTO selectedCustomer = resultList.getSelectedValue();
+        if (selectedCustomer != null) {
+            AccountList accountList = new AccountList(selectedCustomer.getId());
+            accountList.setVisible(true);
+        }
+    }
 }

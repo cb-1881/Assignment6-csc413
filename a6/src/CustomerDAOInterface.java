@@ -11,4 +11,5 @@ import java.util.List;
     List<Customer> getAllCustomers();
    // List<CustomerDTO> findCustomersByLastName(String lastName); // New method
     List<CustomerDTO> findCustomersByCity(String city);  // New method
+    public List<BankAccount> findBankAccountsByCustomerId(int customerId);
 }
