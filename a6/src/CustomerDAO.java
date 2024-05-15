@@ -197,4 +197,22 @@ public class CustomerDAO implements CustomerDAOInterface {
     }
     
 
+    public void updateBankAccount(BankAccount account) throws SQLException {
+        String sql = "UPDATE bankaccount SET balance = ?, acct_type = ?, od_limit = ?, int_rate = ? WHERE acct_num = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDouble(1, account.getBalance());
+            stmt.setString(2, account.getAccountType());
+            stmt.setFloat(3, account.getOverdraftLimit());
+            stmt.setFloat(4, account.getInterestRate());
+            stmt.setInt(5, account.getAccountNumber());
+    
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Updating account failed, no rows affected.");
+            }
+        }
+    }
+    
+
 }
