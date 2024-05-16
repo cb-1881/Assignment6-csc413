@@ -69,24 +69,24 @@ public class Windows {
         });
     }
 
-    public static void transactionWindow() {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Transaction Management");
-            frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            frame.setSize(400, 300);
+    // public static void transactionWindow() {
+    //     SwingUtilities.invokeLater(() -> {
+    //         JFrame frame = new JFrame("Transaction Management");
+    //         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    //         frame.setSize(400, 300);
 
-            // Create the CustomerPanel view component
-            TransactionPanel transactionPanel = new TransactionPanel();
+    //         // Create the CustomerPanel view component
+    //         TransactionPanel transactionPanel = new TransactionPanel();
 
-            // Create the CustomerController, passing the view to it
-            TransactionController transactionController = new TransactionController(transactionPanel);
+    //         // Create the CustomerController, passing the view to it
+    //         TransactionController transactionController = new TransactionController(transactionPanel);
 
-            // Add the view component to the JFrame
-            frame.add(transactionController.getView());
+    //         // Add the view component to the JFrame
+    //         frame.add(transactionController.getView());
 
-            frame.pack(); // Adjust the window size to fit its content
-            frame.setVisible(true);
-        });
-    }
+    //         frame.pack(); // Adjust the window size to fit its content
+    //         frame.setVisible(true);
+    //     });
+    // }
 
 }

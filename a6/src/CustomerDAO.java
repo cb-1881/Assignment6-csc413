@@ -215,4 +215,31 @@ public class CustomerDAO implements CustomerDAOInterface {
     }
     
 
+    public List<Transaction> getTransactionsByAccountId(int accountId) {
+        List<Transaction> transactions = new ArrayList<>();
+        String sql = "SELECT create_date, tran_type, amount, summary, acct_id FROM accountransaction WHERE acct_id = ?";
+    
+        try (Connection conn = getConnection();  // Assume getConnection() is already implemented
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             
+            pstmt.setInt(1, accountId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                Date createDate = rs.getDate("create_date");
+                String tranType = rs.getString("tran_type");
+                double amount = rs.getDouble("amount");
+                String summary = rs.getString("summary");
+                int acctId = rs.getInt("acct_id");
+    
+                Transaction transaction = new Transaction(createDate, tranType, amount, summary, acctId);
+                transactions.add(transaction);
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Exception occurred while retrieving transactions: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return transactions;
+    }
+
 }

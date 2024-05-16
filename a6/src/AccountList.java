@@ -7,8 +7,7 @@ public class AccountList extends JFrame {
     private JList<BankAccount> accountList;
     private DefaultListModel<BankAccount> listModel;
     private JTextArea accountDetailsArea;
-    private JButton showDetailsButton;
-    private JButton updateButton;
+    private JButton showDetailsButton, updateButton, showTransactionsButton;
 
     public AccountList(int customerId) {
         listModel = new DefaultListModel<>();
@@ -16,6 +15,8 @@ public class AccountList extends JFrame {
         accountDetailsArea = new JTextArea(10, 30);
         accountDetailsArea.setEditable(false);
         showDetailsButton = new JButton("Show Details");
+        updateButton = new JButton("Update");
+        showTransactionsButton = new JButton("Show Transactions");  // Create the new button
         loadBankAccounts(customerId);
         setupUI();
     }
@@ -26,7 +27,6 @@ public class AccountList extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     
-        // Setup account list and its cell renderer
         accountList.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -39,43 +39,35 @@ public class AccountList extends JFrame {
             }
         });
     
-        // Initialize buttons and their states
-        showDetailsButton = new JButton("Show Details");
         showDetailsButton.setEnabled(false);
-        updateButton = new JButton("Update");
         updateButton.setEnabled(false);
+        showTransactionsButton.setEnabled(false);  // Initially disable the button
     
-        // List selection listeners
         accountList.addListSelectionListener(e -> {
             boolean notEmpty = !accountList.isSelectionEmpty();
             showDetailsButton.setEnabled(notEmpty);
             updateButton.setEnabled(notEmpty);
+            showTransactionsButton.setEnabled(notEmpty);  // Enable the button when an account is selected
         });
     
-        // Button action listeners
         showDetailsButton.addActionListener(e -> displayAccountDetails());
         updateButton.addActionListener(e -> openUpdateWindow());
+        showTransactionsButton.addActionListener(e -> openTransactionsWindow());  // Add listener to handle click
     
-        // Detail panel for displaying account information
-        JPanel detailsPanel = new JPanel();
-        detailsPanel.setLayout(new BorderLayout());
+        JPanel detailsPanel = new JPanel(new BorderLayout());
         detailsPanel.add(new JScrollPane(accountList), BorderLayout.CENTER);
-        accountDetailsArea = new JTextArea(10, 40);
-        accountDetailsArea.setEditable(false);
         detailsPanel.add(new JScrollPane(accountDetailsArea), BorderLayout.SOUTH);
     
-        // Button panel setup
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(showDetailsButton);
-        buttonPanel.add(updateButton);  // Add the update button next to the show details button
+        buttonPanel.add(updateButton);
+        buttonPanel.add(showTransactionsButton);  // Add the new button to the panel
     
-        // Adding components to the main frame
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(detailsPanel, BorderLayout.CENTER);
         getContentPane().add(buttonPanel, BorderLayout.SOUTH);
     }
-    
-    // Method to open the update window
+
     private void openUpdateWindow() {
         if (!accountList.isSelectionEmpty()) {
             BankAccount selectedAccount = accountList.getSelectedValue();
@@ -83,7 +75,14 @@ public class AccountList extends JFrame {
             updateWindow.setVisible(true);
         }
     }
-    
+
+    private void openTransactionsWindow() {
+        if (!accountList.isSelectionEmpty()) {
+            BankAccount selectedAccount = accountList.getSelectedValue();
+            TransactionList transactionWindow = new TransactionList(selectedAccount.getAccountNumber());
+            transactionWindow.setVisible(true);
+        }
+    }
 
     private void loadBankAccounts(int customerId) {
         CustomerDAO dao = new CustomerDAO();
@@ -106,22 +105,4 @@ public class AccountList extends JFrame {
                                        "\nInterest Rate: " + selectedAccount.getInterestRate() + "%");
         }
     }
-
-
-
 }
-
-
-
-
-/*
- * 
-    private void loadBankAccounts(int customerId) {
-        CustomerDAO dao = new CustomerDAO();
-        List<BankAccount> accounts = dao.findBankAccountsByCustomerId(customerId);
-        for (BankAccount account : accounts) {
-            listModel.addElement(account);
-        }
-    }
- * 
- */

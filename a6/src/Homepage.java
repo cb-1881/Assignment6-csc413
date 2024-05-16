@@ -28,7 +28,7 @@ public class Homepage extends JFrame {
         btnEmployee.addActionListener(e -> Windows.EmployeeWindow());
         btnCustomer.addActionListener(e -> Windows.customerWindow());
         btnAccount.addActionListener(e -> Windows.accountWindow());
-        btnTransaction.addActionListener(e -> Windows.transactionWindow());
+        //btnTransaction.addActionListener(e -> Windows.transactionWindow());
         btnSearch.addActionListener(e -> openSearchPage()); // Listener for opening the search window
     }
 
