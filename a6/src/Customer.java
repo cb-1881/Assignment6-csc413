@@ -72,5 +72,9 @@ public class Customer {
         this.address = address;
     }
 
+    @Override
+    public String toString() {
+        return firstName + " " + lastName;  // Customize as needed
+    }
     // Constructors, getters, and setters
 }
