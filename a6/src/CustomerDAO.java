@@ -121,33 +121,44 @@ public class CustomerDAO implements CustomerDAOInterface {
 
 
 
-
-
-
-    @Override
-    public List<Customer> getAllCustomers() {
-        List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM bankcustomer";
+    public List<CustomerDTO> getAllCustomers() {
+        List<CustomerDTO> customers = new ArrayList<>();
+        String sql = "SELECT c.id, c.first_name, c.last_name, c.email, c.phone, c.sex, c.birthday, " +
+                     "a.cusid, a.streetnum, a.streetname, a.city, a.state, a.zip " +
+                     "FROM bankcustomer c " +
+                     "JOIN customeraddress a ON c.id = a.cusid";  // Adjust the field to match your actual database schema
+    
         try (Connection conn = getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                Customer customer = new Customer(sql, sql, sql, sql, sql, sql, null);
-                customer.setId(rs.getString("id"));
-                customer.setFirstName(rs.getString("first_name"));
-                customer.setLastName(rs.getString("last_name"));
-                customer.setEmail(rs.getString("email"));
-                customer.setPhone(rs.getString("phone"));
-                customer.setSex(rs.getString("sex"));
-                customer.setBirthday(rs.getDate("birthday"));
+                CustomerAddress address = new CustomerAddress(
+                    rs.getInt("cusid"),  // Corrected field name
+                    rs.getInt("streetnum"),
+                    rs.getString("streetname"),
+                    rs.getString("city"),
+                    rs.getString("state"),
+                    rs.getInt("zip")
+                );
+                CustomerDTO customer = new CustomerDTO(
+                    rs.getInt("id"),
+                    rs.getString("first_name"),
+                    rs.getString("last_name"),
+                    rs.getString("email"),
+                    rs.getString("phone"),
+                    rs.getString("sex"),
+                    rs.getDate("birthday"),
+                    address
+                );
                 customers.add(customer);
             }
         } catch (SQLException e) {
+            System.err.println("SQL Exception occurred while retrieving customers: " + e.getMessage());
             e.printStackTrace();
         }
         return customers;
     }
-
+    
 
     public void saveAddress(CustomerAddress address) {
         String sql = "UPDATE customeraddress SET streetnum = ?, streetname = ?, city = ?, state = ?, zip = ? WHERE cusid = ?";
